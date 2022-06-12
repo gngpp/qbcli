@@ -1,5 +1,6 @@
+use std::str::FromStr;
 use anyhow::anyhow;
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use std::time;
 
 pub static UA: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36";
@@ -130,7 +131,7 @@ impl QBQuery {
     }
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub(crate) struct DataResult {
     pub(crate) code: u8,
     pub(crate) msg: Option<String>,
@@ -139,7 +140,7 @@ pub(crate) struct DataResult {
     pub(crate) place: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub(crate) struct Data {
     pub(crate) qq: Option<String>,
     pub(crate) mobile: Option<String>,
@@ -151,10 +152,42 @@ pub(crate) struct Data {
     pub(crate) lol: Option<LOL>,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Debug, Default)]
 pub(crate) struct LOL {
     pub(crate) qq: Option<String>,
     pub(crate) name: Option<String>,
     pub(crate) area: Option<String>,
     pub(crate) dq: Option<String>,
+}
+
+impl FromStr for LOL {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let result = serde_json::from_str::<LOL>(s);
+        return match result {
+            Ok(res) => {
+                Ok(res)
+            }
+            Err(_) => {
+                let lol = LOL {
+                    qq: None,
+                    name: None,
+                    area: None,
+                    dq: None
+                };
+                Ok(lol)
+            }
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for LOL {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        FromStr::from_str(&s).map_err(de::Error::custom)
+    }
 }
