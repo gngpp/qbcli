@@ -18,3 +18,8 @@ OPTIONS:
         --reverse-query-qq <MOBILE>    Q Bind the reverse lookup interface
         --reverse-query-wb <MOBILE>    Weibo binding reverse lookup interface
 ```
+
+- Compile
+```shell
+$ cargo build --release
+```
