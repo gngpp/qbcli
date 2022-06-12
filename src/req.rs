@@ -34,12 +34,10 @@ impl QBQuery {
                     .collect::<String>()
             })
             .collect::<String>();
-        let url = format!("https://qb-api.ltd{}", path);
-        Ok(url)
+        Ok(format!("https://qb-api.ltd{}", path))
     }
 
     async fn request_handler(&self, url: String) -> anyhow::Result<String> {
-        println!("please waiting...");
         // let mut t = tokio::spawn(async move {
         //     loop {
         //         for c in "-\\|/".chars() {
@@ -53,19 +51,28 @@ impl QBQuery {
         Ok(res)
     }
 
+    async fn remove_html(&self, mut res: String) -> anyhow::Result<String> {
+        if res.contains("<br />") {
+            let offset = res.find("{").ok_or(anyhow::anyhow!("find json boundary errors"))?;
+            res.replace_range(..offset, "");
+        }
+        Ok(res)
+    }
+
     async fn body_handler(&self, res: String) -> anyhow::Result<DataResult> {
+
         if res.contains("html") {
             let url = self.extract_redirect_url(res).await?;
-            let res = self
-                .client
-                .get(url)
-                .send()
-                .await?
-                .json::<DataResult>()
-                .await?;
-            return Ok(res);
+            let res = self.request_handler(url).await?;
+            let handler_res = self.remove_html(res).await?;
+            let result = serde_json::from_str::<DataResult>(handler_res.as_ref());
+            return match result {
+                Ok(res) => Ok(res),
+                Err(err) => Err(anyhow!(err)),
+            };
         }
-        let result = serde_json::from_str::<DataResult>(res.as_str());
+        let handler_res = self.remove_html(res).await?;
+        let result = serde_json::from_str::<DataResult>(handler_res.as_ref());
         return match result {
             Ok(res) => Ok(res),
             Err(err) => Err(anyhow!(err)),
@@ -80,8 +87,8 @@ impl QBQuery {
     }
 
     // 反查qq
-    pub async fn reverse_query_qq_for_phone(&self, phone: &str) -> anyhow::Result<DataResult> {
-        let url = format!("https://qb-api.ltd/mob-api.php?mod=cha&hm={}", phone);
+    pub async fn reverse_query_qq_for_mobile(&self, mobile: &str) -> anyhow::Result<DataResult> {
+        let url = format!("https://qb-api.ltd/mob-api.php?mod=cha&hm={}", mobile);
         let res = self.request_handler(url).await?;
         self.body_handler(res).await
     }
@@ -101,14 +108,14 @@ impl QBQuery {
     }
 
     // 微博反查
-    pub async fn reverse_query_weibo_for_phone(&self, phone: &str) -> anyhow::Result<DataResult> {
-        let url = format!("https://qb-api.ltd/wb-fc.php?mod=cha&hm={}", phone);
+    pub async fn reverse_query_weibo_for_mobile(&self, mobile: &str) -> anyhow::Result<DataResult> {
+        let url = format!("https://qb-api.ltd/wb-fc.php?mod=cha&hm={}", mobile);
         let res = self.request_handler(url).await?;
         self.body_handler(res).await
     }
 
     // lol查询
-    pub async fn query_lol_for_qq(&self, qq: &str) -> anyhow::Result<DataResult> {
+    pub async fn query_lol_for_uid(&self, qq: &str) -> anyhow::Result<DataResult> {
         let url = format!("https://qb-api.ltd/lol-api.php?mod=cha&uin={}", qq);
         let res = self.request_handler(url).await?;
         self.body_handler(res).await
@@ -135,6 +142,8 @@ pub(crate) struct DataResult {
 pub(crate) struct Data {
     pub(crate) qq: Option<String>,
     pub(crate) mobile: Option<String>,
+    pub(crate) name: Option<String>,
+    pub(crate) dq: Option<String>,
     pub(crate) uid: Option<String>,
     pub(crate) place: Option<String>,
     pub(crate) wb: Option<String>,
