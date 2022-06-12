@@ -184,13 +184,13 @@ pub(crate) fn print_query_lol_table(res: req::DataResult) {
             .with_style(Attr::ForegroundColor(color::GREEN)),
         Cell::new("qq")
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(color::GREEN))
+            .with_style(Attr::ForegroundColor(color::GREEN)),
     ]));
 
     table.add_row(Row::new(vec![
         Cell::new(status.as_str()),
         Cell::new(msg.as_str()),
-        Cell::new(qq.as_str())
+        Cell::new(qq.as_str()),
     ]));
 }
 
@@ -227,6 +227,6 @@ pub(crate) fn print_reverse_query_lol_table(res: req::DataResult) {
         Cell::new(msg.as_str()),
         Cell::new(name.as_str()),
         Cell::new(qq.as_str()),
-        Cell::new(dq.as_str())
+        Cell::new(dq.as_str()),
     ]));
 }

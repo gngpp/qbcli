@@ -53,14 +53,15 @@ impl QBQuery {
 
     async fn remove_html(&self, mut res: String) -> anyhow::Result<String> {
         if res.contains("<br />") {
-            let offset = res.find("{").ok_or(anyhow::anyhow!("find json boundary errors"))?;
+            let offset = res
+                .find("{")
+                .ok_or(anyhow::anyhow!("find json boundary errors"))?;
             res.replace_range(..offset, "");
         }
         Ok(res)
     }
 
     async fn body_handler(&self, res: String) -> anyhow::Result<DataResult> {
-
         if res.contains("html") {
             let url = self.extract_redirect_url(res).await?;
             let res = self.request_handler(url).await?;
