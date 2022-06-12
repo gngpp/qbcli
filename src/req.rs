@@ -1,6 +1,6 @@
-use std::str::FromStr;
 use anyhow::anyhow;
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
+use std::collections::HashMap;
 use std::time;
 
 pub static UA: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36";
@@ -81,42 +81,36 @@ impl QBQuery {
         };
     }
 
-    // qq查询
     pub async fn query_qq_for_qq(&self, qq: &str) -> anyhow::Result<DataResult> {
         let url = format!("https://qb-api.ltd/allcha.php?qq={}", qq);
         let res = self.request_handler(url).await?;
         self.body_handler(res).await
     }
 
-    // 反查qq
     pub async fn reverse_query_qq_for_mobile(&self, mobile: &str) -> anyhow::Result<DataResult> {
         let url = format!("https://qb-api.ltd/mob-api.php?mod=cha&hm={}", mobile);
         let res = self.request_handler(url).await?;
         self.body_handler(res).await
     }
 
-    // 16e qq查询
     pub async fn query_16e_qq_for_qq(&self, qq: &str) -> anyhow::Result<DataResult> {
         let url = format!("https://qb-api.ltd/16e-api.php?mod=cha&qq={}", qq);
         let res = self.request_handler(url).await?;
         self.body_handler(res).await
     }
 
-    // 微博查询
     pub async fn query_weibo_for_uid(&self, uid: &str) -> anyhow::Result<DataResult> {
         let url = format!("https://qb-api.ltd/wb-api.php?mod=cha&uid={}", uid);
         let res = self.request_handler(url).await?;
         self.body_handler(res).await
     }
 
-    // 微博反查
     pub async fn reverse_query_weibo_for_mobile(&self, mobile: &str) -> anyhow::Result<DataResult> {
         let url = format!("https://qb-api.ltd/wb-fc.php?mod=cha&hm={}", mobile);
         let res = self.request_handler(url).await?;
         self.body_handler(res).await
     }
 
-    // lol查询
     pub async fn query_lol_for_uid(&self, qq: &str) -> anyhow::Result<DataResult> {
         let url = format!("https://qb-api.ltd/lol-api.php?mod=cha&uin={}", qq);
         let res = self.request_handler(url).await?;
@@ -131,7 +125,7 @@ impl QBQuery {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, Debug)]
+#[derive(Serialize, Deserialize, Default)]
 pub(crate) struct DataResult {
     pub(crate) code: u8,
     pub(crate) msg: Option<String>,
@@ -140,7 +134,7 @@ pub(crate) struct DataResult {
     pub(crate) place: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug)]
+#[derive(Serialize, Deserialize, Default)]
 pub(crate) struct Data {
     pub(crate) qq: Option<String>,
     pub(crate) mobile: Option<String>,
@@ -152,42 +146,39 @@ pub(crate) struct Data {
     pub(crate) lol: Option<LOL>,
 }
 
-#[derive(Serialize, Debug, Default)]
+#[derive(Serialize, Default)]
 pub(crate) struct LOL {
+    pub(crate) dq: Option<String>,
     pub(crate) qq: Option<String>,
     pub(crate) name: Option<String>,
     pub(crate) area: Option<String>,
-    pub(crate) dq: Option<String>,
 }
 
-impl FromStr for LOL {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let result = serde_json::from_str::<LOL>(s);
-        return match result {
-            Ok(res) => {
-                Ok(res)
-            }
-            Err(_) => {
+// device Deserialize error will occur
+impl<'de> Deserialize<'de> for LOL {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        // this is error
+        // let result = String::deserialize(deserializer);
+        let res: Result<HashMap<String, String>, D::Error> = HashMap::deserialize(deserializer);
+        return match res {
+            Ok(map) => {
+                let empty_str = String::new();
+                let dq = map.get("dq").unwrap_or(&empty_str);
+                let qq = map.get("qq").unwrap_or(&empty_str);
+                let name = map.get("name").unwrap_or(&empty_str);
+                let area = map.get("area").unwrap_or(&empty_str);
                 let lol = LOL {
-                    qq: None,
-                    name: None,
-                    area: None,
-                    dq: None
+                    dq: Some(dq.to_string()),
+                    qq: Some(qq.to_string()),
+                    name: Some(name.to_string()),
+                    area: Some(area.to_string()),
                 };
                 Ok(lol)
             }
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for LOL {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        FromStr::from_str(&s).map_err(de::Error::custom)
+            Err(_) => Ok(LOL::default()),
+        };
     }
 }
