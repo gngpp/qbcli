@@ -1,6 +1,6 @@
 ### qbcli
 > 毒王社工库`Terminal CLI`
-- Terminal CLi
+- Terminal CLI
 ```shell
 qbcli 
 Social Work Library CLI
