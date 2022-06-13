@@ -19,3 +19,10 @@ serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.81"
 tokio = { version = "1.19.2", features = ["macros", "rt-multi-thread"] }
 prettytable-rs = "0.8.0"
+
+# from https://poly000.github.io/perf-book-zh/build-configuration_zh.html
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = 'z'
