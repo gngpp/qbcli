@@ -21,11 +21,12 @@ impl QBQuery {
     }
 
     //noinspection DuplicatedCode
-    async fn extract_redirect_url(&self, content: String) -> anyhow::Result<String> {
-        let document = nipper::Document::from(content.as_str());
-        let content = document.select("script");
-        let text = String::from(content.text());
-        let path = text
+    async fn extract_redirect_url(&self, mut content: String) -> anyhow::Result<String> {
+        let offset = content
+            .find("window.location.href")
+            .ok_or(anyhow::anyhow!("find script boundary errors")).unwrap();
+        content.replace_range(..offset, "");
+        let path = content.replace("</script>", "")
             .trim()
             .split("window.location.href =\"")
             .filter(|x| x.contains("/"))
