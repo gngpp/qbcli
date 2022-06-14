@@ -24,9 +24,11 @@ impl QBQuery {
     async fn extract_redirect_url(&self, mut content: String) -> anyhow::Result<String> {
         let offset = content
             .find("window.location.href")
-            .ok_or(anyhow::anyhow!("find script boundary errors")).unwrap();
+            .ok_or(anyhow::anyhow!("find script boundary errors"))
+            .unwrap();
         content.replace_range(..offset, "");
-        let path = content.replace("</script>", "")
+        let path = content
+            .replace("</script>", "")
             .trim()
             .split("window.location.href =\"")
             .filter(|x| x.contains("/"))
