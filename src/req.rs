@@ -1,6 +1,8 @@
 use anyhow::anyhow;
+use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
+use std::fmt::Formatter;
 use std::time;
 
 pub static UA: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36";
@@ -130,7 +132,7 @@ pub(crate) struct DataResult {
     pub(crate) msg: Option<String>,
     pub(crate) qq: Option<String>,
     pub(crate) data: Option<Data>,
-    pub(crate) place: Option<String>,
+    pub(crate) place: Option<Place>,
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -140,9 +142,23 @@ pub(crate) struct Data {
     pub(crate) name: Option<String>,
     pub(crate) dq: Option<String>,
     pub(crate) uid: Option<String>,
-    pub(crate) place: Option<String>,
+    pub(crate) place: Option<Place>,
     pub(crate) wb: Option<String>,
     pub(crate) lol: Option<LOL>,
+}
+
+#[derive(Serialize, Default)]
+pub struct Place {
+    value: Option<String>,
+}
+
+impl Place {
+    pub fn value(&self) -> &str {
+        if let Some(ref v) = self.value {
+            return v.as_str();
+        }
+        return "";
+    }
 }
 
 #[derive(Serialize, Default)]
@@ -151,6 +167,40 @@ pub(crate) struct LOL {
     pub(crate) qq: Option<String>,
     pub(crate) name: Option<String>,
     pub(crate) area: Option<String>,
+}
+
+struct PlaceVisitor;
+
+impl<'a> Visitor<'a> for PlaceVisitor {
+    type Value = String;
+
+    fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+        write!(formatter, "place value convert error")
+    }
+
+    fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
+    where
+        E: Error,
+    {
+        Ok(format!("{}", v))
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: Error,
+    {
+        Ok(String::from(v))
+    }
+}
+
+impl<'de> Deserialize<'de> for Place {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = deserializer.deserialize_any(PlaceVisitor)?;
+        Ok(Place { value: Some(value) })
+    }
 }
 
 // device Deserialize error will occur

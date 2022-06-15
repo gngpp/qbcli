@@ -53,7 +53,7 @@ pub(crate) fn print_query_qq_table(res: req::DataResult) {
         Cell::new(msg.as_str()),
         Cell::new(qq.as_str()),
         Cell::new(mobile.as_str()),
-        Cell::new(place.as_str()),
+        Cell::new(place.value()),
         Cell::new(wb.as_str()),
         Cell::new(lol_table.to_string().as_str()),
     ]));
@@ -126,7 +126,7 @@ pub(crate) fn print_query_weibo_table(res: req::DataResult) {
     table.add_row(Row::new(vec![
         Cell::new(status.as_str()),
         Cell::new(msg.as_str()),
-        Cell::new(place.as_str()),
+        Cell::new(place.value()),
         Cell::new(uid.as_str()),
         Cell::new(mobile.as_str()),
     ]));
