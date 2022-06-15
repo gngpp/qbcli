@@ -66,16 +66,12 @@ impl QBQuery {
     }
 
     async fn body_handler(&self, res: String) -> anyhow::Result<DataResult> {
-        if res.contains("html") {
+        let res = if res.contains("html") {
             let url = self.extract_redirect_url(res).await?;
-            let res = self.request_handler(url).await?;
-            let handler_res = self.remove_html(res).await?;
-            let result = serde_json::from_str::<DataResult>(handler_res.as_ref());
-            return match result {
-                Ok(res) => Ok(res),
-                Err(err) => Err(anyhow!(err)),
-            };
-        }
+            self.request_handler(url).await?
+        } else {
+            res
+        };
         let handler_res = self.remove_html(res).await?;
         let result = serde_json::from_str::<DataResult>(handler_res.as_ref());
         return match result {
