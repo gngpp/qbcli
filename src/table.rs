@@ -8,7 +8,11 @@ pub(crate) fn print_query_qq_table(res: req::DataResult) {
     let qq = data.qq.unwrap_or_default();
     let mobile = data.mobile.unwrap_or_default();
     let place = data.place.unwrap_or_default();
-    let wb = data.wb.unwrap_or_default();
+    let wb = if let Some(uid) = data.wb {
+        format!("https://weibo.com/u/{}", uid)
+    } else {
+        data.wb.unwrap_or_default()
+    };
     let lol_data = data.lol.unwrap_or_default();
 
     let mut lol_table = prettytable::Table::new();
@@ -171,8 +175,7 @@ pub(crate) fn print_reverse_query_weibo_table(res: req::DataResult) {
 pub(crate) fn print_query_lol_table(res: req::DataResult) {
     let status = res.code.to_string();
     let msg = res.msg.unwrap_or_default();
-    let data = res.data.unwrap_or_default();
-    let qq = data.qq.unwrap_or_default();
+    let qq = res.qq.unwrap_or_default();
 
     let mut table = prettytable::Table::new();
     table.add_row(Row::new(vec![

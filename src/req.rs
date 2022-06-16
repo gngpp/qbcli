@@ -126,7 +126,7 @@ impl QBQuery {
     }
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Deserialize, Default)]
 pub(crate) struct DataResult {
     pub(crate) code: u8,
     pub(crate) msg: Option<String>,
@@ -135,7 +135,7 @@ pub(crate) struct DataResult {
     pub(crate) place: Option<Place>,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Deserialize, Default)]
 pub(crate) struct Data {
     pub(crate) qq: Option<String>,
     pub(crate) mobile: Option<String>,
@@ -147,7 +147,7 @@ pub(crate) struct Data {
     pub(crate) lol: Option<LOL>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Default)]
 pub struct Place {
     value: Option<String>,
 }
