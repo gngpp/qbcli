@@ -9,9 +9,9 @@ pub(crate) fn print_query_qq_table(res: req::DataResult) {
     let mobile = data.mobile.unwrap_or_default();
     let place = data.place.unwrap_or_default();
     let wb = if let Some(uid) = data.wb {
-        format!("https://weibo.com/u/{}", uid);
+        format!("https://weibo.com/u/{}", uid)
     } else {
-        data.wb.unwrap_or_default()
+        String::new()
     };
     let lol_data = data.lol.unwrap_or_default();
 
