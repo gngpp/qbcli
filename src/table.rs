@@ -10,7 +10,7 @@ pub(crate) fn print_query_qq_table(res: req::DataResult) {
     let place = data.place.unwrap_or_default();
     let wb = if let Some(uid) = data.wb {
         if uid.contains("无结果") {
-            String::new()
+           uid
         } else {
             format!("https://weibo.com/u/{}", uid)
         }
